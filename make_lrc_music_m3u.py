@@ -1,7 +1,7 @@
 # -*- encoding:utf-8 -*-
 
 # 网易云音乐 lrc歌曲m3u生成器
-# 版本: 2.0
+# 版本: 2.1
 import codecs
 import hashlib
 import json
@@ -10,14 +10,14 @@ import urllib
 import urllib2
 from sys import argv
 
-# 歌单id设置
+# 歌单id设置 设置为 argv[1] 将使用 " python make_lrc_music_m3u.py 歌单id " 这种方式传入
 playlistId = argv[1]
 
-# 音乐存放位置
-mp3dir = u""
-
 # 播放列表存放位置
-m3udir = u""
+m3udir = u"./播放列表/"
+
+# 相对于播放列表存放位置的 音乐存放位置
+mp3dir = u"../音乐/"
 
 # 半角转全角
 def half2full(ustring):
@@ -109,13 +109,13 @@ else:
         fileName = replaceName(fileName)
         tid = bytes(tracks['id'])
         # 存在歌曲文件跳过
-        if not os.path.isfile(m3udir + fileName + u".mp3"):
-            dowmMusic(tid, m3udir + fileName + u".mp3")
+        if not os.path.isfile(m3udir + mp3dir + fileName + u".mp3"):
+            dowmMusic(tid, m3udir + mp3dir + fileName + u".mp3")
         # 存在歌词文件就跳过
-        if not os.path.isfile(m3udir + fileName + u".lrc"):
+        if not os.path.isfile(m3udir + mp3dir + fileName + u".lrc"):
             lrcS = getLrc(tid)
             if len(lrcS) > 0:
-                writeToFile(m3udir + fileName + u".lrc", lrcS)
+                writeToFile(m3udir + mp3dir + fileName + u".lrc", lrcS)
         # 添加到播放列表
         addPlaylist(tracks['name'], fileName + u".mp3")
     # 写播放列表文件
