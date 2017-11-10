@@ -44,7 +44,7 @@ def replaceName(name):
     name = name.replace(':', half2full(':'))
     name = name.replace('\"', half2full('\"'))
     name = name.replace('|', half2full('|'))
-    return name
+    return name.strip()
 
 
 # 获取歌词
@@ -65,16 +65,28 @@ def getLrc(tracksId):
 # 下载歌曲
 def dowmMusic(tracksId, fileName):
     url = 'http://music.163.com/song/media/outer/url?id=' + tracksId + '.mp3'
-    print 'Download music: ' + (fileName.encode('GBK', 'ignore'));
-    urllib.urlretrieve(url, fileName)
+    try:
+        print 'Download music: ' + fileName.replace(m3udir,'').replace(mp3dir,'')
+    except:
+        print 'Download music: '
+    try:
+        urllib.urlretrieve(url, fileName)
+    except:
+        print 'error'
 
 
 # 写出文件
 def writeToFile(name, text):
-    print 'Write to file: ' + (name.encode('GBK', 'ignore'));
-    file = codecs.open(name, "w", "utf-8")
-    file.write(text)
-    file.close()
+    try:
+        print 'Write to file: ' + name.replace(m3udir,'').replace(mp3dir,'')
+    except:
+        print 'Write to file: '
+    try:
+        file = codecs.open(name, "w", "utf-8")
+        file.write(text)
+        file.close()
+    except:
+        print 'error'
 
 
 # 生成播放列表
