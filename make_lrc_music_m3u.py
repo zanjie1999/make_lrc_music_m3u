@@ -1,7 +1,7 @@
 # -*- encoding:utf-8 -*-
 
 # 网易云音乐 lrc歌曲m3u生成器
-# 版本: 2.1
+# 版本: 2.3
 import codecs
 import hashlib
 import json
@@ -33,6 +33,14 @@ def half2full(ustring):
     return rstring
 
 
+# 发送请求
+def urlGetJsonLoad(url):
+    req = urllib2.Request(url)
+    req.add_header('Referer',url)
+    req.add_header('User-Agent','Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36')
+    return json.load(urllib2.urlopen(req))
+
+
 # 替换文件名不允许字符
 def replaceName(name):
     name = name.replace('?', half2full('?'))
@@ -50,7 +58,7 @@ def replaceName(name):
 # 获取歌词
 def getLrc(tracksId):
     url = 'http://music.163.com/api/song/media?id=' + tracksId
-    dataS = json.load(urllib2.urlopen(url))
+    dataS = urlGetJsonLoad(url)
     if dataL['code'] != 200:
         ecode = bytes(dataL['code'])
         print 'errorCode: ' + ecode
@@ -98,7 +106,7 @@ def addPlaylist(mp3Title, mp3Name):
 
 # 获取歌单
 url = 'http://music.163.com/api/playlist/detail?id=' + playlistId
-dataL = json.load(urllib2.urlopen(url))
+dataL = urlGetJsonLoad(url)
 if dataL['code'] != 200:
     ecode = bytes(dataL['code'])
     print 'errorCode: ' + ecode
