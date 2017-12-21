@@ -35,9 +35,23 @@ def half2full(ustring):
 
 # 发送请求
 def urlGetJsonLoad(url):
-    req = urllib2.Request(url)
-    req.add_header('Referer',url)
-    req.add_header('User-Agent','Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36')
+    headers = {
+        'Accept':
+            '*/*',
+        'Accept-Language':
+            'zh-CN,zh;q=0.8,gl;q=0.6,zh-TW;q=0.4',
+        'Connection':
+            'keep-alive',
+        'Content-Type':
+            'application/x-www-form-urlencoded',
+        'Referer':
+            'http://music.163.com',
+        'Host':
+            'music.163.com',
+        'User-Agent':
+            'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/33.0.1750.152 Safari/537.36'
+    }
+    req = urllib2.Request(url,headers=headers)
     return json.load(urllib2.urlopen(req))
 
 
