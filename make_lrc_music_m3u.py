@@ -73,8 +73,8 @@ def replaceName(name):
 def getLrc(tracksId):
     url = 'http://music.163.com/api/song/media?id=' + tracksId
     dataS = urlGetJsonLoad(url)
-    if dataL['code'] != 200:
-        ecode = bytes(dataL['code'])
+    if dataS['code'] != 200:
+        ecode = bytes(dataS['code'])
         print 'errorCode: ' + ecode
     else:
         # 判断是否有歌词
