@@ -26,7 +26,7 @@
 2017/12/21 再次改ua,接口死后复生
 
 2018/01/07 修复在山灵播放器上播放列表找不到文件的bug<br>
-           (这个明明是山灵的bug,在'\'做路径时没有问题,用'/'做路径时,个别歌曲找不到路径)<br>
+           (这个明明是山灵的bug,在"\\"做路径时没有问题,用"/"做路径时,个别歌曲找不到路径)<br>
            再次编辑:<br>
                刚刚发现文件名过长也会找不到文件,例如:<br>
                    "Pinkie Pie,Rarity,Applejack,Applebloom,Rainbow Dash,Big Mac,Granny Smith,Twilight Sparkle,Fluttershy - We Got This Together.mp3"<br>
