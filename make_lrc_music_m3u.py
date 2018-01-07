@@ -115,7 +115,7 @@ def writeToFile(name, text):
 m3uText = "#EXTM3U"
 def addPlaylist(mp3Title, mp3Name):
     global m3uText
-    m3uText += u"\n#EXTINF:" + mp3Title + u"\n" + mp3dir + mp3Name
+    m3uText += u"\n#EXTINF:" + mp3Title + u"\n" + mp3dir.replace("/", "\\") + mp3Name
 
 
 # 获取歌单
