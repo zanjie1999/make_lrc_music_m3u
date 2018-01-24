@@ -31,3 +31,6 @@
                刚刚发现文件名过长也会找不到文件,例如:<br>
                    "Pinkie Pie,Rarity,Applejack,Applebloom,Rainbow Dash,Big Mac,Granny Smith,Twilight Sparkle,Fluttershy - We Got This Together.mp3"<br>
                (山灵的程序猿你能给点力吗?)
+
+2018/01/24 难得一天闲了一下来加点功能,一定是工作量不饱和(x)<br>
+           新增按歌单分类和开关选择是否下载歌词的功能(播放器不支持歌词的话下载了歌词文件夹很乱)
