@@ -1,7 +1,7 @@
 # -*- encoding:utf-8 -*-
 
 # 网易云音乐 lrc歌曲m3u生成器
-# 版本: 2.3
+# 版本: 3.0
 import codecs
 import hashlib
 import json
@@ -17,7 +17,14 @@ playlistId = argv[1]
 m3udir = u"./播放列表/"
 
 # 相对于播放列表存放位置的 音乐存放位置
-mp3dir = u"../音乐/"
+mp3dir_in_m3udir = u"../音乐/"
+
+# 是否按m3u分类
+sortBym3u = True
+
+# 是否下载歌词
+downLrc = True
+
 
 # 半角转全角
 def half2full(ustring):
@@ -118,6 +125,13 @@ def addPlaylist(mp3Title, mp3Name):
     m3uText += u"\n#EXTINF:" + mp3Title + u"\n" + mp3dir.replace("/", "\\") + mp3Name
 
 
+# 确保需要的文件夹
+if not os.path.isdir(m3udir):
+    os.mkdir(m3udir)
+
+if not os.path.isdir(m3udir + mp3dir_in_m3udir):
+    os.mkdir(m3udir + mp3dir_in_m3udir)
+
 # 获取歌单
 url = 'http://music.163.com/api/playlist/detail?id=' + playlistId
 dataL = urlGetJsonLoad(url)
@@ -125,13 +139,15 @@ if dataL['code'] != 200:
     ecode = bytes(dataL['code'])
     print 'errorCode: ' + ecode
 else:
-    # 循环歌单
+    m3uName = replaceName(dataL['result']['name'])
     allNum = len(dataL['result']['tracks'])
     nowNum = 0
+    # 循环歌单
     for tracks in dataL['result']['tracks']:
         nowNum += 1
         print bytes(nowNum) + '/ ' + bytes(allNum)
         fileName = ''
+        # 循环歌手
         i = len(tracks['artists']) - 1
         for artist in tracks['artists']:
             if i > 0:
@@ -139,18 +155,32 @@ else:
                 i -= 1
             else:
                 fileName += artist['name']
+            
+        # 如按歌单分文件夹,不存在文件夹就创建
+        if sortBym3u:
+            mp3dir = mp3dir_in_m3udir + m3uName + u"/"
+            if not os.path.isdir(m3udir + mp3dir):
+                os.mkdir(m3udir + mp3dir)
+            
+        else:
+            mp3dir = mp3dir_in_m3udir
+        
         fileName += u" - " + tracks['name']
         fileName = replaceName(fileName)
         tid = bytes(tracks['id'])
         # 存在歌曲文件跳过
         if not os.path.isfile(m3udir + mp3dir + fileName + u".mp3"):
             dowmMusic(tid, m3udir + mp3dir + fileName + u".mp3")
-        # 存在歌词文件就跳过
-        if not os.path.isfile(m3udir + mp3dir + fileName + u".lrc"):
-            lrcS = getLrc(tid)
-            if len(lrcS) > 0:
-                writeToFile(m3udir + mp3dir + fileName + u".lrc", lrcS)
+        
+        # 如果需要下载歌词,不存在歌词就下载
+        if downLrc:
+            if not os.path.isfile(m3udir + mp3dir + fileName + u".lrc"):
+                lrcS = getLrc(tid)
+                if len(lrcS) > 0:
+                    writeToFile(m3udir + mp3dir + fileName + u".lrc", lrcS)
+        
         # 添加到播放列表
         addPlaylist(tracks['name'], fileName + u".mp3")
+    
     # 写播放列表文件
-    writeToFile(m3udir + dataL['result']['name'] + u".m3u", m3uText)
+    writeToFile(m3udir + m3uName + u".m3u", m3uText)
