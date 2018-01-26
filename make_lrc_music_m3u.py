@@ -20,7 +20,7 @@ m3udir = u"./播放列表/"
 mp3dir_in_m3udir = u"../音乐/"
 
 # 是否按m3u分类
-sortBym3u = True
+sortBym3u = False
 
 # 是否下载歌词
 downLrc = True
@@ -84,10 +84,10 @@ def getLrc(tracksId):
         ecode = bytes(dataS['code'])
         print 'errorCode: ' + ecode
     else:
-        if dataS.has_key('nolyric'):
+        if not dataS.has_key('lrc') or not dataS['lrc'].has_key('lyric') or dataS['lrc']['lyric'] == None:
             return ''
 
-        if dataS['tlyric']['lyric'] == None:
+        if not dataS.has_key('tlyric') or not dataS['tlyric'].has_key('lyric') or dataS['tlyric']['lyric'] == None:
             return dataS['lrc']['lyric']
 
         # 按换行分割
@@ -99,7 +99,9 @@ def getLrc(tracksId):
         # 分割翻译
         for tlyric in tlyricL:
             tl = tlyric.split(u']', 1)
-            tlyricD[tl[0]] = tl[1]
+            # 防止有时间但翻译为空
+            if len(tl) > 1:
+                tlyricD[tl[0]] = tl[1]
 
         # 合并歌词
         for lrc in lrcL:
