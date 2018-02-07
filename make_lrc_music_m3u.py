@@ -1,7 +1,8 @@
 # -*- encoding:utf-8 -*-
 
 # 网易云音乐 lrc歌曲m3u生成器
-# 版本: 4.0
+# 版本: 4.1
+import sys
 import codecs
 import hashlib
 import json
@@ -9,6 +10,11 @@ import os
 import urllib
 import urllib2
 from sys import argv
+
+
+if len(argv) < 2:
+    print "请传入歌单id"
+    sys.exit()
 
 # 歌单id设置 设置为 argv[1] 将使用 " python make_lrc_music_m3u.py 歌单id " 这种方式传入
 playlistId = argv[1]
@@ -20,7 +26,10 @@ m3udir = u"./播放列表/"
 mp3dir_in_m3udir = u"../音乐/"
 
 # 是否按m3u分类
-sortBym3u = False
+if len(argv) > 2:
+    sortBym3u = True
+else:
+    sortBym3u = False
 
 # 是否下载歌词
 downLrc = True
