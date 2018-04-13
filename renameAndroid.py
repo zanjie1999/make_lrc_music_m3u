@@ -19,6 +19,7 @@ import os
 import urllib
 import urllib2
 from sys import argv
+# from nt import chdir
 
 
 if len(argv) < 2:
@@ -29,10 +30,10 @@ if len(argv) < 2:
 playlistId = argv[1]
 
 # 播放列表存放位置
-m3udir = u"./播放列表/"
+m3udir = u""
 
 # 相对于播放列表存放位置的 音乐存放位置
-mp3dir_in_m3udir = u"../音乐/"
+mp3dir_in_m3udir = u"./"
 
 # 是否按m3u分类
 if len(argv) > 2:
@@ -178,12 +179,12 @@ def addPlaylist(mp3Title, mp3Name):
     m3uText += u"\n#EXTINF:" + mp3Title + u"\n" + mp3dir.replace("/", "\\") + mp3Name
 
 
-# 确保需要的文件夹
-if not os.path.isdir(m3udir):
-    os.mkdir(m3udir)
+# # 确保需要的文件夹
+# if not os.path.isdir(m3udir):
+#     os.mkdir(m3udir)
 
-if not os.path.isdir(m3udir + mp3dir_in_m3udir):
-    os.mkdir(m3udir + mp3dir_in_m3udir)
+# if not os.path.isdir(m3udir + mp3dir_in_m3udir):
+#     os.mkdir(m3udir + mp3dir_in_m3udir)
 
 # 获取歌单
 url = 'http://music.163.com/api/playlist/detail?id=' + playlistId
@@ -197,21 +198,22 @@ else:
     nowNum = 0
 
     # 如按歌单分文件夹,不存在文件夹就创建
-    if sortBym3u:
-        mp3dir = mp3dir_in_m3udir + m3uName + u"/"
-        if not os.path.isdir(m3udir + mp3dir):
-            os.mkdir(m3udir + mp3dir)
+    # if sortBym3u:
+    #     mp3dir = mp3dir_in_m3udir + m3uName + u"/"
+    #     if not os.path.isdir(m3udir + mp3dir):
+    #         os.mkdir(m3udir + mp3dir)
 
-    else:
-        mp3dir = mp3dir_in_m3udir
+    # else:
+    #     mp3dir = mp3dir_in_m3udir
 
     # 查找所有文件
-    listdir = os.listdir(m3udir + mp3dir)
+    listdir = os.listdir(".")
 
+    # chdir(m3udir + mp3dir)
     # 循环歌单
     for tracks in dataL['result']['tracks']:
         nowNum += 1
-        print bytes(nowNum) + '/ ' + bytes(allNum)
+        # print bytes(nowNum) + '/ ' + bytes(allNum)
         fileName = ''
         fileNameAndroid = ''
         # 循环歌手
@@ -233,28 +235,33 @@ else:
         # 存在歌曲文件跳过
         if not hasFile(fileName + u".mp3"):
             # 如果是按照空格分隔歌手,例如Android端
-            fileNameAndroid += u" - " + tracks['name'].strip()
+            fileNameAndroid += u" - " + (tracks['name'].strip())
             fileNameAndroid = replaceName(fileNameAndroid.replace('/',' ').replace('*',' ').replace('+', half2full('+')).replace('\"',u'”'))
-            if fileNameAndroid != fileName and hasFile(fileNameAndroid):
-                try:
-                    print 'Rename file: ' + fileNameAndroid + u".mp3"
-                except:
-                    print 'Rename file: '
-                    
-                os.rename(m3udir + mp3dir + fileNameAndroid + u".mp3", m3udir + mp3dir + fileName + u".mp3")
-            else:
-                dowmMusic(tid, m3udir + mp3dir + fileName + u".mp3")
+            if hasFile(fileNameAndroid + u".mp3"):
+        # if hasFile(fileNameAndroid + u".mp3") and fileNameAndroid != fileName:
+            # if hasFile(fileName + u".mp3"):
+                # os.remove(fileName + u".mp3");
+                # print "remove"
 
-        # 如果需要下载歌词,不存在歌词就下载
-        if downLrc:
-            if not hasFile(fileName + u".lrc"):
-                lrcS = getLrc(tid)
-                if len(lrcS) > 0:
-                    writeToFile(m3udir + mp3dir + fileName + u".lrc", lrcS)
+                os.rename(fileNameAndroid + u".mp3", fileName + u".mp3")
+                print "rename"
+            else:
+                try:
+                    # print fileNameAndroid
+                    print fileName
+                except:
+                    print nowNum
+                    # dowmMusic(tid, m3udir + mp3dir + fileName + u".mp3")
+
+        # # 如果需要下载歌词,不存在歌词就下载
+        # if downLrc:
+        #     if not hasFile(fileName + u".lrc"):
+        #         lrcS = getLrc(tid)
+        #         if len(lrcS) > 0:
+        #             writeToFile(m3udir + mp3dir + fileName + u".lrc", lrcS)
 
         # 添加到播放列表
-        addPlaylist(tracks['name'], fileName + u".mp3")
+        # addPlaylist(tracks['name'], fileName + u".mp3")
 
     # 写播放列表文件
-    writeToFile(m3udir + m3uName + u".m3u", m3uText)
-    
+    # writeToFile(m3udir + m3uName + u".m3u", m3uText)
