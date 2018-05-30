@@ -40,3 +40,5 @@
 2018/04/13 增加Android端下载歌曲转pc端下载文件名的规则<br>
            renameAndroid.py 用来给Android下的音乐重命名成pc端规则的的,就是这种操作😂<br>
            另外修正了关于文件名带空格的规则
+
+2018/05/30 修复 Android file name 的问题
