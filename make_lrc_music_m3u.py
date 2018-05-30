@@ -235,7 +235,7 @@ else:
             # 如果是按照空格分隔歌手,例如Android端
             fileNameAndroid += u" - " + tracks['name'].strip()
             fileNameAndroid = replaceName(fileNameAndroid.replace('/',' ').replace('*',' ').replace('+', half2full('+')).replace('\"',u'”'))
-            if fileNameAndroid != fileName and hasFile(fileNameAndroid):
+            if fileNameAndroid != fileName and hasFile(fileNameAndroid + u".mp3"):
                 try:
                     print 'Rename file: ' + fileNameAndroid + u".mp3"
                 except:
