@@ -1,38 +1,30 @@
 # -*- encoding:utf-8 -*-
 
 # 网易云音乐 lrc歌曲m3u生成器
-# 版本: 4.1
+# 版本: 5.0
 import platform
 import sys
-
-reload(sys)
-if platform.system() == u'Windows':
-    sys.setdefaultencoding('gbk')
-else:
-    sys.setdefaultencoding('utf-8')
-
-
 import codecs
 import hashlib
 import json
 import os
-import urllib
-import urllib2
+import urllib.request, urllib.parse, urllib.error
+import urllib.request, urllib.error, urllib.parse
 from sys import argv
 
 
 if len(argv) < 2:
-    print "请传入歌单id"
+    print("请传入歌单id")
     sys.exit()
 
 # 歌单id设置 设置为 argv[1] 将使用 " python make_lrc_music_m3u.py 歌单id " 这种方式传入
 playlistId = argv[1]
 
 # 播放列表存放位置
-m3udir = u"./播放列表/"
+m3udir = "./播放列表/"
 
 # 相对于播放列表存放位置的 音乐存放位置
-mp3dir_in_m3udir = u"../音乐/"
+mp3dir_in_m3udir = "../音乐/"
 
 # 是否按m3u分类
 if len(argv) > 2:
@@ -62,7 +54,7 @@ def half2full(ustring):
         elif inside_code >= 32 and inside_code <= 126:
             inside_code += 65248
 
-        rstring += unichr(inside_code)
+        rstring += chr(inside_code)
     return rstring
 
 
@@ -84,8 +76,8 @@ def urlGetJsonLoad(url):
         'User-Agent':
             'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/33.0.1750.152 Safari/537.36'
     }
-    req = urllib2.Request(url, headers=headers)
-    return json.load(urllib2.urlopen(req))
+    req = urllib.request.Request(url, headers=headers)
+    return json.load(urllib.request.urlopen(req))
 
 
 # 替换文件名不允许字符
@@ -109,13 +101,13 @@ def getLrc(tracksId):
     url = 'http://music.163.com/api/song/lyric?lv=-1&tv=-1&id=' + tracksId
     dataS = urlGetJsonLoad(url)
     if dataS['code'] != 200:
-        ecode = bytes(dataS['code'])
-        print 'errorCode: ' + ecode
+        ecode = str(dataS['code'])
+        print('errorCode: ' + ecode)
     else:
-        if not dataS.has_key('lrc') or not dataS['lrc'].has_key('lyric') or dataS['lrc']['lyric'] == None:
+        if 'lrc' not in dataS or 'lyric' not in dataS['lrc'] or dataS['lrc']['lyric'] == None:
             return ''
 
-        if not dataS.has_key('tlyric') or not dataS['tlyric'].has_key('lyric') or dataS['tlyric']['lyric'] == None:
+        if 'tlyric' not in dataS or 'lyric' not in dataS['tlyric'] or dataS['tlyric']['lyric'] == None:
             return dataS['lrc']['lyric']
 
         # 按换行分割
@@ -126,18 +118,18 @@ def getLrc(tracksId):
 
         # 分割翻译
         for tlyric in tlyricL:
-            tl = tlyric.split(u']', 1)
+            tl = tlyric.split(']', 1)
             # 防止有时间但翻译为空
             if len(tl) > 1:
                 tlyricD[tl[0]] = tl[1]
 
         # 合并歌词
         for lrc in lrcL:
-            l = lrc.split(u']', 1)
-            if tlyricD.has_key(l[0]):
-                lrcStr += l[0] + u']' + l[1] + u'\t' + tlyricD[l[0]] + u'\n'
+            l = lrc.split(']', 1)
+            if l[0] in tlyricD:
+                lrcStr += l[0] + ']' + l[1] + '\t' + tlyricD[l[0]] + '\n'
             else:
-                lrcStr += lrc + u'\n'
+                lrcStr += lrc + '\n'
 
         return lrcStr
 
@@ -146,27 +138,27 @@ def getLrc(tracksId):
 def dowmMusic(tracksId, fileName):
     url = 'http://music.163.com/song/media/outer/url?id=' + tracksId + '.mp3'
     try:
-        print 'Download music: ' + fileName.replace(m3udir, '').replace(mp3dir, '')
+        print('Download music: ' + fileName.replace(m3udir, '').replace(mp3dir, ''))
     except:
-        print 'Download music: '
+        print('Download music: ')
     try:
-        urllib.urlretrieve(url, fileName)
+        urllib.request.urlretrieve(url, fileName)
     except:
-        print 'error'
+        print('error')
 
 
 # 写出文件
 def writeToFile(name, text):
     try:
-        print 'Write to file: ' + name.replace(m3udir, '').replace(mp3dir, '')
+        print('Write to file: ' + name.replace(m3udir, '').replace(mp3dir, ''))
     except:
-        print 'Write to file: '
+        print('Write to file: ')
     try:
         file = codecs.open(name, "w", "utf-8")
         file.write(text)
         file.close()
     except:
-        print 'error'
+        print('error')
 
 
 # 生成播放列表
@@ -175,7 +167,7 @@ m3uText = "#EXTM3U"
 
 def addPlaylist(mp3Title, mp3Name):
     global m3uText
-    m3uText += u"\n#EXTINF:" + mp3Title + u"\n" + mp3dir.replace("/", "\\") + mp3Name
+    m3uText += "\n#EXTINF:" + mp3Title + "\n" + mp3dir.replace("/", "\\") + mp3Name
 
 
 # 确保需要的文件夹
@@ -189,8 +181,8 @@ if not os.path.isdir(m3udir + mp3dir_in_m3udir):
 url = 'http://music.163.com/api/playlist/detail?id=' + playlistId
 dataL = urlGetJsonLoad(url)
 if dataL['code'] != 200:
-    ecode = bytes(dataL['code'])
-    print 'errorCode: ' + ecode
+    ecode = str(dataL['code'])
+    print('errorCode: ' + ecode)
 else:
     m3uName = replaceName(dataL['result']['name'])
     allNum = len(dataL['result']['tracks'])
@@ -198,7 +190,7 @@ else:
 
     # 如按歌单分文件夹,不存在文件夹就创建
     if sortBym3u:
-        mp3dir = mp3dir_in_m3udir + m3uName + u"/"
+        mp3dir = mp3dir_in_m3udir + m3uName + "/"
         if not os.path.isdir(m3udir + mp3dir):
             os.mkdir(m3udir + mp3dir)
 
@@ -211,50 +203,50 @@ else:
     # 循环歌单
     for tracks in dataL['result']['tracks']:
         nowNum += 1
-        print bytes(nowNum) + '/ ' + bytes(allNum)
+        print(str(nowNum) + '/ ' + str(allNum))
         fileName = ''
         fileNameAndroid = ''
         # 循环歌手
         i = len(tracks['artists']) - 1
         for artist in tracks['artists']:
             if i > 0:
-                fileName += artist['name'] + u","
-                fileNameAndroid += artist['name'] + u" "
+                fileName += artist['name'] + ","
+                fileNameAndroid += artist['name'] + " "
                 i -= 1
             else:
                 fileName += artist['name']
                 fileNameAndroid += artist['name']
 
 
-        fileName += u" - " + tracks['name']
+        fileName += " - " + tracks['name']
         fileName = replaceName(fileName)
         
-        tid = bytes(tracks['id'])
+        tid = str(tracks['id'])
         # 存在歌曲文件跳过
-        if not hasFile(fileName + u".mp3"):
+        if not hasFile(fileName + ".mp3"):
             # 如果是按照空格分隔歌手,例如Android端
-            fileNameAndroid += u" - " + tracks['name'].strip()
-            fileNameAndroid = replaceName(fileNameAndroid.replace('/',' ').replace('*',' ').replace('+', half2full('+')).replace('\"',u'”'))
-            if fileNameAndroid != fileName and hasFile(fileNameAndroid + u".mp3"):
+            fileNameAndroid += " - " + tracks['name'].strip()
+            fileNameAndroid = replaceName(fileNameAndroid.replace('/',' ').replace('*',' ').replace('+', half2full('+')).replace('\"','”'))
+            if fileNameAndroid != fileName and hasFile(fileNameAndroid + ".mp3"):
                 try:
-                    print 'Rename file: ' + fileNameAndroid + u".mp3"
+                    print('Rename file: ' + fileNameAndroid + ".mp3")
                 except:
-                    print 'Rename file: '
+                    print('Rename file: ')
                     
-                os.rename(m3udir + mp3dir + fileNameAndroid + u".mp3", m3udir + mp3dir + fileName + u".mp3")
+                os.rename(m3udir + mp3dir + fileNameAndroid + ".mp3", m3udir + mp3dir + fileName + ".mp3")
             else:
-                dowmMusic(tid, m3udir + mp3dir + fileName + u".mp3")
+                dowmMusic(tid, m3udir + mp3dir + fileName + ".mp3")
 
         # 如果需要下载歌词,不存在歌词就下载
         if downLrc:
-            if not hasFile(fileName + u".lrc"):
+            if not hasFile(fileName + ".lrc"):
                 lrcS = getLrc(tid)
                 if len(lrcS) > 0:
-                    writeToFile(m3udir + mp3dir + fileName + u".lrc", lrcS)
+                    writeToFile(m3udir + mp3dir + fileName + ".lrc", lrcS)
 
         # 添加到播放列表
-        addPlaylist(tracks['name'], fileName + u".mp3")
+        addPlaylist(tracks['name'], fileName + ".mp3")
 
     # 写播放列表文件
-    writeToFile(m3udir + m3uName + u".m3u", m3uText)
+    writeToFile(m3udir + m3uName + ".m3u", m3uText)
     
