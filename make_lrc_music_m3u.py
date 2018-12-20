@@ -1,7 +1,7 @@
 # -*- encoding:utf-8 -*-
 
 # 网易云音乐 lrc歌曲m3u生成器
-# 版本: 5.0
+# 版本: 6.0
 import platform
 import sys
 import codecs
@@ -35,6 +35,18 @@ else:
 # 是否下载歌词
 downLrc = True
 
+# 加载头部 防ban
+opener = urllib.request.build_opener()
+opener.addheaders = [
+    ('Accept','*/*'),
+    ('Accept-Language','zh-CN,zh;q=0.8,gl;q=0.6,zh-TW;q=0.4'),
+    ('Connection','keep-alive'),
+    ('Content-Type','application/x-www-form-urlencoded'),
+    ('Referer','http://music.163.com'),
+    ('Host','music.163.com'),
+    ('User-Agent','Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/33.0.1750.152 Safari/537.36')
+]
+urllib.request.install_opener(opener)
 
 # 判断文件是否存在
 def hasFile(fileName):
@@ -60,24 +72,10 @@ def half2full(ustring):
 
 # 发送请求
 def urlGetJsonLoad(url):
-    headers = {
-        'Accept':
-            '*/*',
-        'Accept-Language':
-            'zh-CN,zh;q=0.8,gl;q=0.6,zh-TW;q=0.4',
-        'Connection':
-            'keep-alive',
-        'Content-Type':
-            'application/x-www-form-urlencoded',
-        'Referer':
-            'http://music.163.com',
-        'Host':
-            'music.163.com',
-        'User-Agent':
-            'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/33.0.1750.152 Safari/537.36'
-    }
-    req = urllib.request.Request(url, headers=headers)
-    return json.load(urllib.request.urlopen(req))
+    try:
+        return json.load(urllib.request.urlopen(url))
+    except:
+        print('error')
 
 
 # 替换文件名不允许字符
@@ -140,11 +138,11 @@ def dowmMusic(tracksId, fileName):
     try:
         print('Download music: ' + fileName.replace(m3udir, '').replace(mp3dir, ''))
     except:
-        print('Download music: ')
+        print('Download music: ' + tracksId)
     try:
         urllib.request.urlretrieve(url, fileName)
     except:
-        print('error')
+       print('error')
 
 
 # 写出文件
