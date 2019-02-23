@@ -91,6 +91,7 @@ def replaceName(name):
     name = name.replace('|', half2full('|'))
     name = name.replace('[', half2full('['))
     name = name.replace(']', half2full(']'))
+    name = name.strip()
     return name
 
 
