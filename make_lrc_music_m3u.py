@@ -33,7 +33,7 @@ else:
     sortBym3u = False
 
 # 是否下载歌词
-downLrc = False
+downLrc = True
 
 # 加载头部 防ban
 opener = urllib.request.build_opener()
@@ -139,10 +139,10 @@ def dowmMusic(tracksId, fileName):
         print('Download music: ' + fileName.replace(m3udir, '').replace(mp3dir, ''))
     except:
         print('Download music: ' + tracksId)
-    # try:
-        # urllib.request.urlretrieve(url, fileName)
-    # except:
-    #    print('error')
+    try:
+        urllib.request.urlretrieve(url, fileName)
+    except:
+       print('error')
 
 
 # 写出文件
