@@ -33,7 +33,7 @@ else:
     sortBym3u = False
 
 # 是否下载歌词
-downLrc = True
+downLrc = False
 
 # 加载头部 防ban
 opener = urllib.request.build_opener()
@@ -139,10 +139,10 @@ def dowmMusic(tracksId, fileName):
         print('Download music: ' + fileName.replace(m3udir, '').replace(mp3dir, ''))
     except:
         print('Download music: ' + tracksId)
-    try:
-        urllib.request.urlretrieve(url, fileName)
-    except:
-       print('error')
+    # try:
+        # urllib.request.urlretrieve(url, fileName)
+    # except:
+    #    print('error')
 
 
 # 写出文件
@@ -201,19 +201,22 @@ else:
     # 循环歌单
     for tracks in dataL['result']['tracks']:
         nowNum += 1
-        print(str(nowNum) + '/ ' + str(allNum))
+        print("\r" + str(nowNum) + '/ ' + str(allNum), end=' ')
         fileName = ''
         fileNameAndroid = ''
+        fileNameReverse = ''
         # 循环歌手
         i = len(tracks['artists']) - 1
         for artist in tracks['artists']:
             if i > 0:
                 fileName += artist['name'] + ","
                 fileNameAndroid += artist['name'] + " "
+                fileNameReverse = "," + artist['name'] + fileNameReverse
                 i -= 1
             else:
                 fileName += artist['name']
                 fileNameAndroid += artist['name']
+                fileNameReverse = artist['name'] + fileNameReverse
 
 
         fileName += " - " + tracks['name']
@@ -233,7 +236,19 @@ else:
                     
                 os.rename(m3udir + mp3dir + fileNameAndroid + ".mp3", m3udir + mp3dir + fileName + ".mp3")
             else:
-                dowmMusic(tid, m3udir + mp3dir + fileName + ".mp3")
+                # 最近网易整理了一下歌手,处理一下已有文件翻转的情况
+                fileNameReverse += " - " + tracks['name'].strip()
+                fileNameReverse = replaceName(fileNameReverse)
+                if fileNameAndroid != fileName and fileNameReverse != fileName and fileNameAndroid != fileNameReverse and hasFile(fileNameReverse + ".mp3"):
+                    try:
+                        print('Rename file: ' + fileNameReverse + ".mp3")
+                    except:
+                        print('Rename file: ')
+
+                    os.rename(m3udir + mp3dir + fileNameReverse + ".mp3", m3udir + mp3dir + fileName + ".mp3")
+                else:
+                    # 这里将下载一个无信息的128kbps的版本
+                    dowmMusic(tid, m3udir + mp3dir + fileName + ".mp3")
 
         # 如果需要下载歌词,不存在歌词就下载
         if downLrc:
