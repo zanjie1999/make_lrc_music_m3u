@@ -1,7 +1,7 @@
 # -*- encoding:utf-8 -*-
 
 # 网易云音乐 lrc歌曲m3u生成器
-# 版本: 6.0
+# 版本: 7.0
 import platform
 import sys
 import codecs
@@ -11,7 +11,6 @@ import os
 import urllib.request, urllib.parse, urllib.error
 import urllib.request, urllib.error, urllib.parse
 from sys import argv
-
 
 if len(argv) < 2:
     print("请传入歌单id")
@@ -38,22 +37,39 @@ downLrc = True
 # 加载头部 防ban
 opener = urllib.request.build_opener()
 opener.addheaders = [
-    ('Accept','*/*'),
-    ('Accept-Language','zh-CN,zh;q=0.8,gl;q=0.6,zh-TW;q=0.4'),
-    ('Connection','keep-alive'),
-    ('Content-Type','application/x-www-form-urlencoded'),
-    ('Referer','http://music.163.com'),
-    ('Host','music.163.com'),
-    ('User-Agent','Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/33.0.1750.152 Safari/537.36')
+    ('Accept', '*/*'),
+    ('Accept-Language', 'zh-CN,zh;q=0.8,gl;q=0.6,zh-TW;q=0.4'),
+    ('Connection', 'keep-alive'),
+    ('Content-Type', 'application/x-www-form-urlencoded'),
+    ('Referer', 'http://music.163.com'), ('Host', 'music.163.com'),
+    ('User-Agent', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/33.0.1750.152 Safari/537.36')
 ]
 urllib.request.install_opener(opener)
 
+
 # 判断文件是否存在
 def hasFile(fileName):
-    if fileName in listdir:
-        return True
-    else:
-        return False
+    # 文件名不区分大小写
+    for i in listdir:
+        if fileName.upper() == i.upper():
+            return i
+
+    return ''
+
+
+# 寻找存在的音频文件
+fType = ''
+def findHasMusicFileFullFileName(name):
+    global fType
+    fType = ''
+    fileTyps = ['.flac', '.ape', '.wav', '.mp3']
+    for t in fileTyps:
+        fullFileName = hasFile(name + t)
+        if fullFileName != '':
+            fType = t
+            return fullFileName
+
+    return ''
 
 
 # 半角转全角
@@ -143,7 +159,7 @@ def dowmMusic(tracksId, fileName):
     try:
         urllib.request.urlretrieve(url, fileName)
     except:
-       print('error')
+        print('error')
 
 
 # 写出文件
@@ -162,8 +178,6 @@ def writeToFile(name, text):
 
 # 生成播放列表
 m3uText = "#EXTM3U"
-
-
 def addPlaylist(mp3Title, mp3Name):
     global m3uText
     m3uText += "\n#EXTINF:" + mp3Title + "\n" + mp3dir.replace("/", "\\") + mp3Name
@@ -219,37 +233,49 @@ else:
                 fileNameAndroid += artist['name']
                 fileNameReverse = artist['name'] + fileNameReverse
 
-
         fileName += " - " + tracks['name']
         fileName = replaceName(fileName)
-        
+
         tid = str(tracks['id'])
+        # 检查存在的文件
+        fullFileName = findHasMusicFileFullFileName(fileName)
         # 存在歌曲文件跳过
-        if not hasFile(fileName + ".mp3"):
+        if fullFileName == '':
             # 如果是按照空格分隔歌手,例如Android端
             fileNameAndroid += " - " + tracks['name'].strip()
-            fileNameAndroid = replaceName(fileNameAndroid.replace('/',' ').replace('*',' ').replace('+', half2full('+')).replace('\"','”'))
-            if fileNameAndroid != fileName and hasFile(fileNameAndroid + ".mp3"):
-                try:
-                    print('Rename file: ' + fileNameAndroid + ".mp3")
-                except:
-                    print('Rename file: ')
+            fileNameAndroid = replaceName(fileNameAndroid.replace('/', ' ').replace('*', ' ').replace('+', half2full('+')).replace('\"', '”'))
+            if fileNameAndroid != fileName:
+                # 检查存在的文件
+                fullFileName = findHasMusicFileFullFileName(fileNameAndroid)
+                if fullFileName != '':
+                    try:
+                        print('Rename file: ' + fullFileName)
+                    except:
+                        print('Rename file: ')
+
+                    os.rename(m3udir + mp3dir + fullFileName, m3udir + mp3dir + fileName + fType)
+                    fullFileName = fileName + fType
                     
-                os.rename(m3udir + mp3dir + fileNameAndroid + ".mp3", m3udir + mp3dir + fileName + ".mp3")
             else:
                 # 最近网易整理了一下歌手,处理一下已有文件翻转的情况
                 fileNameReverse += " - " + tracks['name'].strip()
                 fileNameReverse = replaceName(fileNameReverse)
-                if fileNameAndroid != fileName and fileNameReverse != fileName and fileNameAndroid != fileNameReverse and hasFile(fileNameReverse + ".mp3"):
-                    try:
-                        print('Rename file: ' + fileNameReverse + ".mp3")
-                    except:
-                        print('Rename file: ')
+                if fullFileName == '' and fileNameReverse != fileName and fileNameAndroid != fileNameReverse:
+                    # 检查存在的文件
+                    fullFileName = findHasMusicFileFullFileName(fileNameReverse)
+                    if fullFileName != '':
+                        try:
+                            print('Rename file: ' + fullFileName)
+                        except:
+                            print('Rename file: ')
 
-                    os.rename(m3udir + mp3dir + fileNameReverse + ".mp3", m3udir + mp3dir + fileName + ".mp3")
+                        os.rename(m3udir + mp3dir + fullFileName, m3udir + mp3dir + fileName + fType)
+                        fullFileName = fileName + fType
+
                 else:
-                    # 这里将下载一个无信息的128kbps的版本
+                    # 这里将下载一个无信息的128kbps的版本 听个响
                     dowmMusic(tid, m3udir + mp3dir + fileName + ".mp3")
+                    fullFileName = fileName + '.mp3'
 
         # 如果需要下载歌词,不存在歌词就下载
         if downLrc:
@@ -259,8 +285,7 @@ else:
                     writeToFile(m3udir + mp3dir + fileName + ".lrc", lrcS)
 
         # 添加到播放列表
-        addPlaylist(tracks['name'], fileName + ".mp3")
+        addPlaylist(tracks['name'], fullFileName)
 
     # 写播放列表文件
     writeToFile(m3udir + m3uName + ".m3u", m3uText)
-    
