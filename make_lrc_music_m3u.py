@@ -255,27 +255,27 @@ else:
 
                     os.rename(m3udir + mp3dir + fullFileName, m3udir + mp3dir + fileName + fType)
                     fullFileName = fileName + fType
-                    
-            else:
-                # 最近网易整理了一下歌手,处理一下已有文件翻转的情况
-                fileNameReverse += " - " + tracks['name'].strip()
-                fileNameReverse = replaceName(fileNameReverse)
-                if fullFileName == '' and fileNameReverse != fileName and fileNameAndroid != fileNameReverse:
-                    # 检查存在的文件
-                    fullFileName = findHasMusicFileFullFileName(fileNameReverse)
-                    if fullFileName != '':
-                        try:
-                            print('Rename file: ' + fullFileName)
-                        except:
-                            print('Rename file: ')
 
-                        os.rename(m3udir + mp3dir + fullFileName, m3udir + mp3dir + fileName + fType)
-                        fullFileName = fileName + fType
+        if fullFileName == '':
+            # 最近网易整理了一下歌手,处理一下已有文件翻转的情况
+            fileNameReverse += " - " + tracks['name'].strip()
+            fileNameReverse = replaceName(fileNameReverse)
+            if fullFileName == '' and fileNameReverse != fileName and fileNameAndroid != fileNameReverse:
+                # 检查存在的文件
+                fullFileName = findHasMusicFileFullFileName(fileNameReverse)
+                if fullFileName != '':
+                    try:
+                        print('Rename file: ' + fullFileName)
+                    except:
+                        print('Rename file: ')
 
-                else:
-                    # 这里将下载一个无信息的128kbps的版本 听个响
-                    dowmMusic(tid, m3udir + mp3dir + fileName + ".mp3")
-                    fullFileName = fileName + '.mp3'
+                    os.rename(m3udir + mp3dir + fullFileName, m3udir + mp3dir + fileName + fType)
+                    fullFileName = fileName + fType
+
+        if fullFileName == '':
+            # 这里将下载一个无封面的128kbps的版本 听个响
+            dowmMusic(tid, m3udir + mp3dir + fileName + ".mp3")
+            fullFileName = fileName + '.mp3'
 
         # 如果需要下载歌词,不存在歌词就下载
         if downLrc:
@@ -284,8 +284,10 @@ else:
                 if len(lrcS) > 0:
                     writeToFile(m3udir + mp3dir + fileName + ".lrc", lrcS)
 
-        # 添加到播放列表
-        addPlaylist(tracks['name'], fullFileName)
+        # 添加到播放列表 理论上这里fullFileName是不会为空的
+        if fullFileName != '':
+            addPlaylist(tracks['name'], fullFileName)
+
 
     # 写播放列表文件
     writeToFile(m3udir + m3uName + ".m3u", m3uText)
