@@ -9,8 +9,10 @@ import hashlib
 import json
 import os
 import urllib.request, urllib.parse, urllib.error
-import urllib.request, urllib.error, urllib.parse
+import gzip
 from sys import argv
+from io import StringIO
+
 
 if len(argv) < 2:
     print("请传入歌单id")
@@ -37,12 +39,14 @@ downLrc = True
 # 加载头部 防ban
 opener = urllib.request.build_opener()
 opener.addheaders = [
-    ('Accept', '*/*'),
-    ('Accept-Language', 'zh-CN,zh;q=0.8,gl;q=0.6,zh-TW;q=0.4'),
+    ('Host', 'music.163.com'),
     ('Connection', 'keep-alive'),
-    ('Content-Type', 'application/x-www-form-urlencoded'),
-    ('Referer', 'http://music.163.com'), ('Host', 'music.163.com'),
-    ('User-Agent', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/33.0.1750.152 Safari/537.36')
+    ('Cache-Control', 'max-age=0'),
+    ('Upgrade-Insecure-Requests', '1'),
+    ('User-Agent', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/77.0.3865.90 Safari/537.36'),
+    ('Accept', 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3'),
+    ('Accept-Encoding', 'gzip, deflate'),
+    ('Accept-Language', 'zh-CN,zh-TW;q=0.9,zh;q=0.8,en-GB;q=0.7,en;q=0.6')
 ]
 urllib.request.install_opener(opener)
 
@@ -88,10 +92,21 @@ def half2full(ustring):
 
 # 发送请求
 def urlGetJsonLoad(url):
+    gzdata = ''
     try:
-        return json.load(urllib.request.urlopen(url))
+        gzdata = urllib.request.urlopen(url)
     except:
-        print('error')
+        print('connect error: ', url)
+        return {'code':''}
+    try:
+        if isinstance(gzdata, str):
+            return json.load(gzdata)
+        else:
+            gziper = gzip.GzipFile(fileobj=gzdata)  
+            return json.load(gziper)
+    except:
+        print('decode error: ', url)
+        return {'code':''}
 
 
 # 替换文件名不允许字符
