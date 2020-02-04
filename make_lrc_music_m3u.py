@@ -10,6 +10,7 @@ import json
 import os
 import urllib.request, urllib.parse, urllib.error
 import gzip
+import signal
 from sys import argv
 from io import StringIO
 
@@ -35,6 +36,13 @@ else:
 
 # 是否下载歌词
 downLrc = True
+
+# Ctrl + C 退出
+def signal_handler(signal, frame):
+   print('Ctrl + C, exit now...')
+   sys.exit(1)
+
+signal.signal(signal.SIGINT, signal_handler)
 
 # 加载头部 防ban
 opener = urllib.request.build_opener()
@@ -92,21 +100,24 @@ def half2full(ustring):
 
 # 发送请求
 def urlGetJsonLoad(url):
+    """ 发送请求并解析json
+    """
+
     gzdata = ''
     try:
-        gzdata = urllib.request.urlopen(url)
+        gzdata = request.urlopen(url)
     except:
         print('connect error: ', url)
-        return {'code':''}
+        return {'code': ''}
     try:
-        if isinstance(gzdata, str):
-            return json.load(gzdata)
-        else:
-            gziper = gzip.GzipFile(fileobj=gzdata)  
+        if gzdata.info().get('Content-Encoding') == 'gzip':
+            gziper = gzip.GzipFile(fileobj=gzdata)
             return json.load(gziper)
-    except:
+        else:
+            return json.loads(gzdata)
+    except Exception as e:
         print('decode error: ', url)
-        return {'code':''}
+        return {'code': ''}
 
 
 # 替换文件名不允许字符
@@ -128,6 +139,7 @@ def replaceName(name):
 
 # 获取歌词
 def getLrc(tracksId):
+    return ''
     url = 'http://music.163.com/api/song/lyric?lv=-1&tv=-1&id=' + tracksId
     dataS = urlGetJsonLoad(url)
     if dataS['code'] != 200:
@@ -172,7 +184,8 @@ def dowmMusic(tracksId, fileName):
     except:
         print('Download music: ' + tracksId)
     try:
-        urllib.request.urlretrieve(url, fileName)
+        pass
+        # urllib.request.urlretrieve(url, fileName)
     except:
         print('error')
 
