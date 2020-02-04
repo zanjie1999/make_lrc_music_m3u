@@ -139,7 +139,6 @@ def replaceName(name):
 
 # 获取歌词
 def getLrc(tracksId):
-    return ''
     url = 'http://music.163.com/api/song/lyric?lv=-1&tv=-1&id=' + tracksId
     dataS = urlGetJsonLoad(url)
     if dataS['code'] != 200:
@@ -184,8 +183,7 @@ def dowmMusic(tracksId, fileName):
     except:
         print('Download music: ' + tracksId)
     try:
-        pass
-        # urllib.request.urlretrieve(url, fileName)
+        urllib.request.urlretrieve(url, fileName)
     except:
         print('error')
 
