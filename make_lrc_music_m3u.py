@@ -105,8 +105,8 @@ def urlGetJsonLoad(url):
 
     gzdata = ''
     try:
-        gzdata = request.urlopen(url)
-    except:
+        gzdata = urllib.request.urlopen(url)
+    except Exception as e:
         print('connect error: ', url)
         return {'code': ''}
     try:
