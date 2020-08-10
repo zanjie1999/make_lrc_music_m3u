@@ -1,7 +1,7 @@
 # -*- encoding:utf-8 -*-
 
-# 网易云音乐 lrc歌曲m3u生成器
-# 版本: 7.0
+# 网抑云 lrc歌曲m3u生成器
+# 版本: 8.0
 import platform
 import sys
 import codecs
@@ -37,6 +37,12 @@ else:
 # 是否下载歌词
 downLrc = True
 
+# 账号cookie 
+# 由于不登录只会返回前10首歌 更多的需要登录 建议用小号 别人得到了这段cookie相当于能登录你的账号 请务必不要泄露
+# Chrome打开网抑云 -> 登录 -> 按F12打开 开发者工具 -> 切换到 Console -> 输入 document.cookie 按回车 -> 复制输出内容替换下面的双引号
+cookie = ""
+
+
 # Ctrl + C 退出
 def signal_handler(signal, frame):
    print('Ctrl + C, exit now...')
@@ -47,14 +53,18 @@ signal.signal(signal.SIGINT, signal_handler)
 # 加载头部 防ban
 opener = urllib.request.build_opener()
 opener.addheaders = [
-    ('Host', 'music.163.com'),
-    ('Connection', 'keep-alive'),
-    ('Cache-Control', 'max-age=0'),
-    ('Upgrade-Insecure-Requests', '1'),
-    ('User-Agent', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/77.0.3865.90 Safari/537.36'),
-    ('Accept', 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3'),
-    ('Accept-Encoding', 'gzip, deflate'),
-    ('Accept-Language', 'zh-CN,zh-TW;q=0.9,zh;q=0.8,en-GB;q=0.7,en;q=0.6')
+    ('authority', 'music.163.com'),
+    ('user-agent', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.105 Safari/537.36'),
+    ('dnt', '1'),
+    ('content-type', 'application/x-www-form-urlencoded'),
+    ('accept', '*/*'),
+    ('origin', 'https://music.163.com'),
+    ('sec-fetch-site', 'same-origin'),
+    ('sec-fetch-mode', 'cors'),
+    ('sec-fetch-dest', 'empty'),
+    ('referer', 'https://music.163.com/my/'),
+    ('accept-language', 'zh-CN,zh-TW;q=0.9,zh;q=0.8,en-US;q=0.7,en;q=0.6'),
+    ('cookie', cookie)
 ]
 urllib.request.install_opener(opener)
 
@@ -184,6 +194,12 @@ def dowmMusic(tracksId, fileName):
         print('Download music: ' + tracksId)
     try:
         urllib.request.urlretrieve(url, fileName)
+        if os.path.getsize(fileName) < 10000:
+            # 小于10k这音频肯定有问题 给它扬了
+            f = open(fileName)
+            print(f.read())
+            f.close()
+            os.remove(fileName)
     except:
         print('error')
 
