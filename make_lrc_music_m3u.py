@@ -9,6 +9,7 @@ import hashlib
 import json
 import os
 import urllib.request, urllib.parse, urllib.error
+from http import cookiejar
 import gzip
 import signal
 from sys import argv
@@ -38,9 +39,9 @@ else:
 downLrc = True
 
 # 账号cookie 
-# 由于不登录只会返回前10首歌 更多的需要登录 别人得到了这段cookie相当于能登录你的账号 请务必不要泄露
-# Chrome打开网抑云 -> 登录 -> 按F12打开 开发者工具 -> 切换到 Console -> 输入 document.cookie 按回车 -> 复制输出内容替换下面的引号
-cookie = ''
+# 由于不登录只会返回前10首歌 更多的需要登录 (歌单创建者 失效了可以打开一次输出的url再复制) 别人得到了这段cookie相当于能登录你的账号 请务必不要泄露
+# Chrome打开网抑云 -> 登录 -> 按F12打开 开发者工具 -> 切换到 Console -> 输入 document.cookie 按回车 -> 复制输出内容替换下面的双引号
+cookie = ""
 
 
 # Ctrl + C 退出
@@ -51,7 +52,8 @@ def signal_handler(signal, frame):
 signal.signal(signal.SIGINT, signal_handler)
 
 # 加载头部 防ban
-opener = urllib.request.build_opener()
+cookieJar = cookiejar.CookieJar()
+opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(cookieJar))
 opener.addheaders = [
     ('Accept', 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9'),
     ('Accept-Encoding', 'gzip, deflate'),
@@ -109,7 +111,6 @@ def half2full(ustring):
 def urlGetJsonLoad(url):
     """ 发送请求并解析json
     """
-    # print(url)
 
     gzdata = ''
     try:
@@ -152,6 +153,7 @@ def getLrc(tracksId):
     if dataS['code'] != 200:
         ecode = str(dataS['code'])
         print('errorCode: ' + ecode)
+        return ''
     else:
         if 'lrc' not in dataS or 'lyric' not in dataS['lrc'] or dataS['lrc']['lyric'] == None:
             return ''
@@ -232,6 +234,7 @@ if not os.path.isdir(m3udir + mp3dir_in_m3udir):
 
 # 获取歌单
 url = 'http://music.163.com/api/playlist/detail?id=' + playlistId
+print(url)
 dataL = urlGetJsonLoad(url)
 if dataL['code'] != 200:
     ecode = str(dataL['code'])
