@@ -1,7 +1,7 @@
 # -*- encoding:utf-8 -*-
 
 # 网抑云 lrc歌曲m3u生成器
-# 版本: 8.0
+# 版本: 8.1
 import platform
 import sys
 import codecs
@@ -38,9 +38,9 @@ else:
 downLrc = True
 
 # 账号cookie 
-# 由于不登录只会返回前10首歌 更多的需要登录 建议用小号 别人得到了这段cookie相当于能登录你的账号 请务必不要泄露
-# Chrome打开网抑云 -> 登录 -> 按F12打开 开发者工具 -> 切换到 Console -> 输入 document.cookie 按回车 -> 复制输出内容替换下面的双引号
-cookie = ""
+# 由于不登录只会返回前10首歌 更多的需要登录 别人得到了这段cookie相当于能登录你的账号 请务必不要泄露
+# Chrome打开网抑云 -> 登录 -> 按F12打开 开发者工具 -> 切换到 Console -> 输入 document.cookie 按回车 -> 复制输出内容替换下面的引号
+cookie = ''
 
 
 # Ctrl + C 退出
@@ -53,18 +53,15 @@ signal.signal(signal.SIGINT, signal_handler)
 # 加载头部 防ban
 opener = urllib.request.build_opener()
 opener.addheaders = [
-    ('authority', 'music.163.com'),
-    ('user-agent', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.105 Safari/537.36'),
-    ('dnt', '1'),
-    ('content-type', 'application/x-www-form-urlencoded'),
-    ('accept', '*/*'),
-    ('origin', 'https://music.163.com'),
-    ('sec-fetch-site', 'same-origin'),
-    ('sec-fetch-mode', 'cors'),
-    ('sec-fetch-dest', 'empty'),
-    ('referer', 'https://music.163.com/my/'),
-    ('accept-language', 'zh-CN,zh-TW;q=0.9,zh;q=0.8,en-US;q=0.7,en;q=0.6'),
-    ('cookie', cookie)
+    ('Accept', 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9'),
+    ('Accept-Encoding', 'gzip, deflate'),
+    ('Accept-Language', 'zh-CN,zh-TW;q=0.9,zh;q=0.8,en-US;q=0.7,en;q=0.6'),
+    ('Connection', 'keep-alive'),
+    ('Cookie', cookie),
+    ('DNT', '1'),
+    ('Host', 'music.163.com'),
+    ('Upgrade-Insecure-Requests', '1'),
+    ('User-Agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.121 Safari/537.36')
 ]
 urllib.request.install_opener(opener)
 
@@ -112,6 +109,7 @@ def half2full(ustring):
 def urlGetJsonLoad(url):
     """ 发送请求并解析json
     """
+    # print(url)
 
     gzdata = ''
     try:
