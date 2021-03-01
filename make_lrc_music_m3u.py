@@ -1,7 +1,7 @@
 # -*- encoding:utf-8 -*-
 
 # 网抑云 lrc歌曲m3u生成器
-# 版本: 9.0
+# 版本: 10.0
 import platform
 import sys
 import codecs
@@ -39,13 +39,14 @@ else:
 downLrc = True
 
 # 是否下载音乐
-down128Music = False
+down128Music = True
 
 # 账号cookie 
 # 由于不登录只会返回前10首歌 更多的需要登录 (歌单创建者 失效了可以打开一次输出的url再复制) 别人得到了这段cookie相当于能登录你的账号 请务必不要泄露
 # Chrome打开网抑云 -> 登录 -> 按F12打开 开发者工具 -> 切换到 Console -> 输入 document.cookie 按回车 -> 复制输出内容替换下面的双引号
 cookie = ""
 
+translationTable = str.maketrans("àèéùâêîôûçë", "aeuaeeiouce")
 
 # Ctrl + C 退出
 def signal_handler(signal, frame):
@@ -112,9 +113,6 @@ def half2full(ustring):
 
 # 发送请求
 def urlGetJsonLoad(url):
-    """ 发送请求并解析json
-    """
-
     gzdata = ''
     try:
         gzdata = urllib.request.urlopen(url, timeout=10)
@@ -203,8 +201,11 @@ def downMusic(tracksId, fileName):
             print(f.read())
             f.close()
             os.remove(fileName)
+            return False
     except:
         print('error')
+        return False
+    return True
 
 
 # 写出文件
@@ -235,6 +236,14 @@ if not os.path.isdir(m3udir):
 if not os.path.isdir(m3udir + mp3dir_in_m3udir):
     os.mkdir(m3udir + mp3dir_in_m3udir)
 
+# 弄个文件来存对应关系
+db = {}
+with codecs.open(m3udir + mp3dir_in_m3udir + 'db.json', "r", "utf-8") as dbf:
+    try:
+        db = json.load(dbf)
+    except:
+        print('NO Db')
+
 # 获取歌单
 url = 'http://music.163.com/api/playlist/detail?id=' + playlistId
 print(url)
@@ -258,6 +267,7 @@ else:
 
     # 查找所有文件
     listdir = os.listdir(m3udir + mp3dir)
+    noFileTxt = ''
 
     # 循环歌单
     for tracks in dataL['result']['tracks']:
@@ -288,55 +298,71 @@ else:
         # 按照空格分隔歌手,例如Android端
         fileNameAndroid += " - " + tracks['name'].strip()
         fileNameAndroid = replaceName(fileNameAndroid.replace('/', ' ').replace('*', ' ').replace('+', half2full('+')).replace('\"', '”'))
+        fileNameAndroidOld = fileNameAndroid.translate(translationTable)
         # 歌手翻转的
         fileNameReverse += " - " + tracks['name'].strip()
         fileNameReverseAndroid += " - " + tracks['name'].strip()
         fileNameReverse = replaceName(fileNameReverse)
         fileNameReverseAndroid = replaceName(fileNameReverseAndroid)
+        fileNameReverseAndroidOld = fileNameReverseAndroid.translate(translationTable)
 
         tid = str(tracks['id'])
         # 检查存在的文件
         fullFileNameAndroid = findHasMusicFileFullFileName(fileNameAndroid)
-        
+
         if fullFileNameAndroid == '':
+            fullFileName = ""
+            lastFindName = ""
+            # 从db找，找到了就重命名
+            if tid in db:
+                lastFindName = db[tid]
+                fullFileName = findHasMusicFileFullFileName(lastFindName)
             # PC 命名方式重命名为Android命名方式
             if fileNameAndroid != fileName:
-                # 检查存在的文件
-                fullFileName = findHasMusicFileFullFileName(fileName)
-                if fullFileName != '':
-                    try:
-                        print('Rename file: ' + fullFileName)
-                    except:
-                        print('Rename file: ')
-
-                    os.rename(m3udir + mp3dir + fullFileName, m3udir + mp3dir + fileNameAndroid + fType)
-                    fullFileNameAndroid = fileNameAndroid + fType
-
-        if fullFileNameAndroid == '':
+                lastFindName = fileName
+                fullFileName = findHasMusicFileFullFileName(lastFindName)
             # 最近网易整理了一下歌手,处理一下已有文件翻转的情况
-            fullFileNameReverse = ""
-            # 检查存在的文件
-            if fileNameReverse != fileName:
-                fullFileNameReverse = findHasMusicFileFullFileName(fileNameReverse)
-            elif fileNameAndroid != fileNameReverseAndroid:
-                fullFileNameReverse = findHasMusicFileFullFileName(fileNameReverseAndroid)
+            if fullFileName == '' and fileNameAndroid != fileNameReverse:
+                lastFindName = fileNameReverse
+                fullFileName = findHasMusicFileFullFileName(lastFindName)
+            if fullFileName == '' and fileNameAndroid != fileNameReverseAndroid:
+                lastFindName = fileNameReverseAndroid
+                fullFileName = findHasMusicFileFullFileName(lastFindName)
+            # 最近整理发型客户端突然支持法语子字符了 大量文件改名
+            if fullFileName == '' and fileNameAndroid != fileNameAndroidOld:
+                lastFindName = fileNameAndroidOld
+                fullFileName = findHasMusicFileFullFileName(lastFindName)
+            if fullFileName == '' and fileNameAndroid != fileNameReverseAndroidOld:
+                lastFindName = fileNameReverseAndroidOld
+                fullFileName = findHasMusicFileFullFileName(lastFindName)
 
-            if fullFileNameReverse != '':
+            if fullFileName != '':
                 try:
-                    print('Rename file: ' + fullFileNameReverse)
+                    print('Rename file: ' + fullFileName)
                 except:
                     print('Rename file: ')
-
-                os.rename(m3udir + mp3dir + fullFileNameReverse, m3udir + mp3dir + fileNameAndroid + fType)
+                try:
+                    os.rename(m3udir + mp3dir + fullFileName, m3udir + mp3dir + fileNameAndroid + fType)
+                    fullFileNameAndroid = fileNameAndroid + fType
+                    try:
+                        os.remove(lastFindName + '.lrc')
+                    except:
+                        pass
+                except:
+                    print('Rename error!')
                 fullFileNameAndroid = fileNameAndroid + fType
 
         if fullFileNameAndroid == '':
             fullFileNameAndroid = fileNameAndroid + '.mp3'
             if down128Music:
                 # 这里将下载一个无封面的128kbps的版本 听个响
-                downMusic(tid, m3udir + mp3dir + fullFileNameAndroid)
+                if downMusic(tid, m3udir + mp3dir + fullFileNameAndroid):
+                    db[tid] = fileNameAndroid
             else:
-                print('NO File: ' + fullFileNameAndroid)
+                print('NO File: ' + fileNameAndroid)
+                noFileTxt += fileNameAndroid + '\r\n'
+        else:
+            db[tid] = fileNameAndroid
 
         # 如果需要下载歌词,不存在歌词就下载
         if downLrc:
@@ -349,6 +375,11 @@ else:
         if fullFileNameAndroid != '':
             addPlaylist(tracks['name'], fullFileNameAndroid)
 
+    # 写db文件
+    writeToFile(m3udir + mp3dir_in_m3udir + 'db.json', json.dumps(db))
+
+    # 没有文件的让人类处理
+    writeToFile(m3udir + mp3dir + "noFile.txt", noFileTxt)
 
     # 写播放列表文件
     writeToFile(m3udir + m3uName + ".m3u", m3uText)
