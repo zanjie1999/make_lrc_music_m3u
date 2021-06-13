@@ -195,11 +195,9 @@ def downMusic(tracksId, fileName):
         print('Download music: ' + tracksId)
     try:
         urllib.request.urlretrieve(url, fileName)
-        if os.path.getsize(fileName) < 10000:
+        if os.path.getsize(fileName) < 20000:
             # 小于10k这音频肯定有问题 给它扬了
-            f = open(fileName)
-            print(f.read())
-            f.close()
+            print('Need VIP')
             os.remove(fileName)
             return False
     except:
@@ -361,6 +359,8 @@ else:
                 # 这里将下载一个无封面的128kbps的版本 听个响
                 if downMusic(tid, m3udir + mp3dir + fullFileNameAndroid):
                     db[tid] = fileNameAndroid
+                else:
+                    noFileTxt += fileNameAndroid + '\r\n'
             else:
                 print('NO File: ' + fileNameAndroid)
                 noFileTxt += fileNameAndroid + '\r\n'
@@ -382,7 +382,7 @@ else:
     writeToFile(m3udir + mp3dir_in_m3udir + 'db.json', json.dumps(db, ensure_ascii=False))
 
     # 没有文件的让人类处理
-    if not down128Music:
+    if noFileTxt != '':
         writeToFile(m3udir + mp3dir + "noFile.txt", noFileTxt)
 
     # 写播放列表文件
