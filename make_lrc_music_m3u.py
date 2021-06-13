@@ -1,7 +1,7 @@
 # -*- encoding:utf-8 -*-
 
 # 网抑云 lrc歌曲m3u生成器
-# 版本: 10.0
+# 版本: 11.0
 import platform
 import sys
 import codecs
@@ -238,22 +238,25 @@ if not os.path.isdir(m3udir + mp3dir_in_m3udir):
 
 # 弄个文件来存对应关系
 db = {}
-with codecs.open(m3udir + mp3dir_in_m3udir + 'db.json', "r", "utf-8") as dbf:
-    try:
-        db = json.load(dbf)
-    except:
-        print('NO Db')
+if os.path.isfile(m3udir + mp3dir_in_m3udir + 'db.json'):
+    with codecs.open(m3udir + mp3dir_in_m3udir + 'db.json', "r", "utf-8") as dbf:
+        try:
+            db = json.load(dbf)
+        except:
+            print('Error DB')
+else:
+    print('NO DB')
 
 # 获取歌单
-url = 'http://music.163.com/api/playlist/detail?id=' + playlistId
+url = 'http://music.163.com/api/v6/playlist/detail?n=2147483647&id=' + playlistId
 print(url)
 dataL = urlGetJsonLoad(url)
 if dataL['code'] != 200:
     ecode = str(dataL['code'])
     print('errorCode: ' + ecode)
 else:
-    m3uName = replaceName(dataL['result']['name'])
-    allNum = len(dataL['result']['tracks'])
+    m3uName = replaceName(dataL['playlist']['name'])
+    allNum = len(dataL['playlist']['tracks'])
     nowNum = 0
 
     # 如按歌单分文件夹,不存在文件夹就创建
@@ -270,7 +273,7 @@ else:
     noFileTxt = ''
 
     # 循环歌单
-    for tracks in dataL['result']['tracks']:
+    for tracks in dataL['playlist']['tracks']:
         nowNum += 1
         print("\r" + str(nowNum) + '/ ' + str(allNum), end=' ')
         fileName = ''
@@ -278,8 +281,8 @@ else:
         fileNameReverse = ''
         fileNameReverseAndroid = ''
         # 循环歌手
-        i = len(tracks['artists']) - 1
-        for artist in tracks['artists']:
+        i = len(tracks['ar']) - 1
+        for artist in tracks['ar']:
             if i > 0:
                 fileName += artist['name'] + ","
                 fileNameAndroid += artist['name'] + " "
@@ -376,10 +379,11 @@ else:
             addPlaylist(tracks['name'], fullFileNameAndroid)
 
     # 写db文件
-    writeToFile(m3udir + mp3dir_in_m3udir + 'db.json', json.dumps(db))
+    writeToFile(m3udir + mp3dir_in_m3udir + 'db.json', json.dumps(db, ensure_ascii=False))
 
     # 没有文件的让人类处理
-    writeToFile(m3udir + mp3dir + "noFile.txt", noFileTxt)
+    if not down128Music:
+        writeToFile(m3udir + mp3dir + "noFile.txt", noFileTxt)
 
     # 写播放列表文件
     writeToFile(m3udir + m3uName + ".m3u", m3uText)
