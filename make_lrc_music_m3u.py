@@ -1,7 +1,7 @@
 # -*- encoding:utf-8 -*-
 
 # 网抑云 lrc歌曲m3u生成器
-# 版本: 13.0
+# 版本: 13.1
 import platform
 import sys
 import codecs
@@ -77,9 +77,9 @@ urllib.request.install_opener(opener)
 def hasFile(fileName):
     # 文件名不区分大小写
     for i in listdir:
-        # 适配网易云的迷惑unicode行为 比如 '結束バンド' != '結束バンド' 以及歌手名括号中的内容 文件名开始结束或歌手的全角空格
-        fn1 = unicodedata.normalize("NFC", re.sub(r'[()（）]|[　 ]', '', re.sub(r'\(.*?\)|（.*?）', '', fileName)))
-        fn2 = unicodedata.normalize("NFC", re.sub(r'[()（）]|[　 ]', '', re.sub(r'\(.*?\)|（.*?）', '', i)))
+        # 适配网易云的迷惑unicode行为 比如 '結束バンド' != '結束バンド' 文件名开始结束或歌手的全角空格
+        fn1 = unicodedata.normalize("NFC", re.sub(r'[()（）]|[　 ]', '', fileName))
+        fn2 = unicodedata.normalize("NFC", re.sub(r'[()（）]|[　 ]', '', i))
         if fn1 == fn2:
             return i
 
