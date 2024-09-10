@@ -1,7 +1,7 @@
 # -*- encoding:utf-8 -*-
 
 # 网抑云 lrc歌曲m3u生成器
-# 版本: 12.0
+# 版本: 13.0
 import platform
 import sys
 import codecs
@@ -14,7 +14,7 @@ import gzip
 import signal
 from sys import argv
 from io import StringIO
-import unicodedata
+import unicodedata, re
 
 
 if len(argv) < 2:
@@ -28,7 +28,7 @@ playlistId = argv[1]
 m3udir = "./播放列表/"
 
 # 相对于播放列表存放位置的 音乐存放位置
-mp3dir_in_m3udir = "../音乐/"
+mp3dir_in_m3udir = "../网易云音乐/"
 
 # 是否按m3u分类
 if len(argv) > 2:
@@ -37,10 +37,10 @@ else:
     sortBym3u = False
 
 # 是否下载歌词
-downLrc = True
+downLrc = False
 
 # 是否下载音乐
-down128Music = True
+down128Music = False
 
 # 账号cookie 
 # 由于不登录只会返回前10首歌 更多的需要登录 (歌单创建者 失效了可以打开一次输出的url再复制) 别人得到了这段cookie相当于能登录你的账号 请务必不要泄露
@@ -77,8 +77,10 @@ urllib.request.install_opener(opener)
 def hasFile(fileName):
     # 文件名不区分大小写
     for i in listdir:
-        # 适配网易云的迷惑unicode行为 比如 '結束バンド' != '結束バンド'
-        if unicodedata.normalize("NFC", fileName.upper().replace(' ', '')) == unicodedata.normalize("NFC", i.upper().replace(' ', '')):
+        # 适配网易云的迷惑unicode行为 比如 '結束バンド' != '結束バンド' 以及歌手名括号中的内容 文件名开始结束或歌手的全角空格
+        fn1 = unicodedata.normalize("NFC", re.sub(r'[()（）]|[　 ]', '', re.sub(r'\(.*?\)|（.*?）', '', fileName)))
+        fn2 = unicodedata.normalize("NFC", re.sub(r'[()（）]|[　 ]', '', re.sub(r'\(.*?\)|（.*?）', '', i)))
+        if fn1 == fn2:
             return i
 
     return ''
@@ -238,8 +240,8 @@ if not os.path.isdir(m3udir + mp3dir_in_m3udir):
 
 # 弄个文件来存对应关系
 db = {}
-if os.path.isfile(m3udir + mp3dir_in_m3udir + 'db.json'):
-    with codecs.open(m3udir + mp3dir_in_m3udir + 'db.json', "r", "utf-8") as dbf:
+if os.path.isfile(m3udir + 'db.json'):
+    with codecs.open(m3udir + 'db.json', "r", "utf-8") as dbf:
         try:
             db = json.load(dbf)
         except:
@@ -289,7 +291,7 @@ else:
                 fileNameReverse = "," + artist['name'] + fileNameReverse
                 fileNameReverseAndroid = " " + artist['name'] + fileNameReverse
                 i -= 1
-            else:
+            elif artist['name']:
                 fileName += artist['name']
                 fileNameAndroid += artist['name']
                 fileNameReverse = artist['name'] + fileNameReverse
@@ -381,11 +383,11 @@ else:
             addPlaylist(tracks['name'], fullFileNameAndroid)
 
     # 写db文件
-    writeToFile(m3udir + mp3dir_in_m3udir + 'db.json', json.dumps(db, ensure_ascii=False))
+    writeToFile(m3udir + 'db.json', json.dumps(db, ensure_ascii=False))
 
     # 没有文件的让人类处理
     if noFileTxt != '':
-        writeToFile(m3udir + mp3dir + "noFile.txt", noFileTxt)
+        writeToFile(m3udir + "noFile.txt", noFileTxt)
 
     # 写播放列表文件
     writeToFile(m3udir + m3uName + ".m3u", m3uText)
