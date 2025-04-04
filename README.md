@@ -50,3 +50,9 @@
 2021/02/10 改为使用Android命名规则便于同步文件  
 2021/03/01 发现网易云开始日语汉字和法语长音重音闭音符号了，因此写了一个重命名的规则，另外增加了本地数据库db.json，歌手或歌曲改名后可以自动维护
 2024/09/10 发现了一些魔幻unicode歌曲名，比如 '結束バンド' != '結束バンド' 写了新的匹配规则，并更新了mp3删除工具，删除了大量看起来一样实际不一样的文件名的有flac的mp3
+
+
+### 协议 咩License
+使用此项目视为您已阅读并同意遵守 [此LICENSE](https://github.com/zanjie1999/LICENSE)   
+Using this project is deemed to indicate that you have read and agreed to abide by [this LICENSE](https://github.com/zanjie1999/LICENSE)   
+
